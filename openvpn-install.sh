@@ -56,13 +56,13 @@ newclient () {
 	echo "</key>" >> ~/$1.ovpn
 	auto=$(cat /etc/openvpn/cfg/auto)
 	tlscfg=$(cat /etc/openvpn/cfg/tlscfg)
-	if [[ "$oped" = "c" ]]; then
+	if [[ "$tlscfg" = "c" ]]; then
 	echo "<tls-crypt>" >> ~/$1.ovpn
 	else
 	echo "<tls-auth>" >> ~/$1.ovpn
 	fi
 	cat /etc/openvpn/ta.key >> ~/$1.ovpn
-	if [[ "$oped" = "c" ]]; then
+	if [[ "$tlscfg" = "c" ]]; then
 	echo "</tls-crypt>" >> ~/$1.ovpn
 	else
 	echo "</tls-auth>" >> ~/$1.ovpn
