@@ -54,9 +54,21 @@ newclient () {
 	echo "<key>" >> ~/$1.ovpn
 	cat /etc/openvpn/easy-rsa/pki/private/$1.key >> ~/$1.ovpn
 	echo "</key>" >> ~/$1.ovpn
+	bash /etc/openvpn/tls-settings.txt
+	if [[ "$oped" = "c" ]]; then
 	echo "<tls-crypt>" >> ~/$1.ovpn
+	else
+	echo "<tls-auth>" >> ~/$1.ovpn
+	fi
 	cat /etc/openvpn/ta.key >> ~/$1.ovpn
+	if [[ "$oped" = "c" ]]; then
 	echo "</tls-crypt>" >> ~/$1.ovpn
+	else
+	echo "</tls-auth>" >> ~/$1.ovpn
+	fi
+	if [[ "$auto" = "1" ]]; then
+	cp ~/$1.ovpn /var/www/html/
+	fi
 }
 
 # Try to get our IP from the system and fallback to the Internet.
@@ -91,6 +103,9 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 			newclient "$CLIENT"
 			echo ""
 			echo "Client $CLIENT added, configuration is available at" ~/"$CLIENT.ovpn"
+			if [[ "$auto" = "1" ]]; then
+			echo "You can directly download the configuration at $IP"/"$CLIENT.ovpn (only if not behind NAT)"
+			fi
 			exit
 			;;
 			2)
@@ -182,7 +197,7 @@ else
 	echo 'Welcome to this quick OpenVPN "road warrior" installer'
 	echo 'The current script is modified from the original'
 	echo '(https://github.com/Nyr/openvpn-install)'
-	echo 'to use tls-crypt instead of the default tls-auth.'
+	echo 'to enable tls-crypt and easy-mode (move the config to httpd directly).'
 	echo ""
 	# OpenVPN setup and first user creation
 	echo "I need to ask you a few questions before starting the setup"
@@ -208,6 +223,23 @@ else
 	echo "What port do you want OpenVPN listening to?"
 	read -p "Port: " -e -i 1194 PORT
 	echo ""
+	echo "Would you like to use tls-crypt instead of tls-auth?"
+	echo "   1) tls-auth (better compatibility)"
+	echo "   2) tls-crypt (better control channel obfuscation, requires client support)"
+	read -p "TLS protocol [1-2]: " -e -i 1 TLSPROT
+	case $TLSPROT in
+		1) 
+		SERVTLS="tls-crypt ta.key"
+		KEYD=""
+		CLIENTSET="c"
+		;;
+		2) 
+		SERVTLS="tls-auth ta.key 0"
+		KEYD="key-direction 1"
+		CLIENTSET="a"
+		;;
+	esac
+	echo ""
 	echo "Which DNS do you want to use with the VPN?"
 	echo "   1) Current system resolvers"
 	echo "   2) Google"
@@ -220,6 +252,19 @@ else
 	echo "Finally, tell me your name for the client certificate"
 	echo "Please, use one word only, no special characters"
 	read -p "Client name: " -e -i client CLIENT
+	echo ""
+	echo "Would you like to automatically directly move all new configuration"
+	echo "files to a downloadable URL? (/var/www/html/)"
+	echo "Note: Please understand the risks."
+	read -p "Yes/no [y/n]: " -e -i n PROTOCOL
+	case $PROTOCOL in
+		y) 
+		auto=1
+		;;
+		Y) 
+		auto=1
+		;;
+	esac
 	echo ""
 	echo "Okay, that was all I needed. We are ready to setup your OpenVPN server now"
 	read -n1 -r -p "Press any key to continue..."
@@ -257,7 +302,7 @@ else
 	cp pki/ca.crt pki/private/ca.key pki/dh.pem pki/issued/server.crt pki/private/server.key pki/crl.pem /etc/openvpn
 	# CRL is read with each client connection, when OpenVPN is dropped to nobody
 	chown nobody:$GROUPNAME /etc/openvpn/crl.pem
-	# Generate key for tls-crypt
+	# Generate key for tls-auth
 	openvpn --genkey --secret /etc/openvpn/ta.key
 	# Generate server.conf
 	echo "port $PORT
@@ -270,7 +315,7 @@ cert server.crt
 key server.key
 dh dh.pem
 auth SHA512
-tls-crypt ta.key
+$SERVTLS
 topology subnet
 server 10.8.0.0 255.255.255.0
 ifconfig-pool-persist ipp.txt" > /etc/openvpn/server.conf
@@ -396,6 +441,13 @@ exit 0' > $RCLOCAL
 			IP=$USEREXTERNALIP
 		fi
 	fi
+	# Install httpd on auto installations
+	if [[ "$auto" = "1" ]]; then
+	yum install httpd -y
+	apt-get install httpd -y
+	iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+	sed -i "1 a\iptables -I INPUT -p tcp --dport 80 -j ACCEPT" $RCLOCAL
+	fi
 	# client-common.txt is created so we have a template to add further users later
 	echo "client
 dev tun
@@ -412,7 +464,10 @@ auth SHA512
 cipher AES-256-CBC
 comp-lzo
 setenv opt block-outside-dns
+$KEYD
 verb 3" > /etc/openvpn/client-common.txt
+	echo "oped=$CLIENTSET" > /etc/openvpn/tls-settings.txt
+	echo "auto=$auto" > /etc/openvpn/tls-settings.txt
 	# Generates the custom client.ovpn
 	newclient "$CLIENT"
 	echo ""
