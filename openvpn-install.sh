@@ -54,7 +54,8 @@ newclient () {
 	echo "<key>" >> ~/$1.ovpn
 	cat /etc/openvpn/easy-rsa/pki/private/$1.key >> ~/$1.ovpn
 	echo "</key>" >> ~/$1.ovpn
-	bash /etc/openvpn/tls-settings.txt
+	auto=$(cat /etc/openvpn/cfg/auto)
+	tlscfg=$(cat /etc/openvpn/cfg/tlscfg)
 	if [[ "$oped" = "c" ]]; then
 	echo "<tls-crypt>" >> ~/$1.ovpn
 	else
@@ -103,9 +104,9 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 			newclient "$CLIENT"
 			echo ""
 			echo "Client $CLIENT added, configuration is available at" ~/"$CLIENT.ovpn"
-			bash /etc/openvpn/tls-settings.txt
+			auto=$(cat /etc/openvpn/cfg/auto)
 			if [[ "$auto" = "1" ]]; then
-			echo "You can also directly download the configuration at $IP"/"$CLIENT.ovpn (only if not behind NAT)"
+			echo "You can also directly download the configuration at $IP"/"$CLIENT.ovpn (non-NAT only)"
 			fi
 			exit
 			;;
@@ -255,10 +256,10 @@ else
 	read -p "Client name: " -e -i client CLIENT
 	echo ""
 	echo "Would you like to automatically directly move all new configuration"
-	echo "files to a downloadable URL? (/var/www/html/)"
+	echo "files to a downloadable URL? (non-NAT only, stored at /var/www/html/)"
 	echo "Note: Please understand the risks."
-	read -p "Yes/no [y/n]: " -e -i n PROTOCOL
-	case $PROTOCOL in
+	read -p "Yes/no [y/n]: " -e -i n AUTOM
+	case $AUTOM in
 		y) 
 		auto=1
 		;;
@@ -467,13 +468,16 @@ comp-lzo
 setenv opt block-outside-dns
 $KEYD
 verb 3" > /etc/openvpn/client-common.txt
-	echo "oped=$CLIENTSET" > /etc/openvpn/tls-settings.txt
-	echo "auto=$auto" > /etc/openvpn/tls-settings.txt
+	echo "$CLIENTSET" > /etc/openvpn/cfg/tlscfg
+	echo "$auto" > /etc/openvpn/cfg/auto
 	# Generates the custom client.ovpn
 	newclient "$CLIENT"
 	echo ""
 	echo "Finished!"
 	echo ""
 	echo "Your client configuration is available at" ~/"$CLIENT.ovpn"
+			if [[ "$auto" = "1" ]]; then
+			echo "You can also directly download the configuration at $IP"/"$CLIENT.ovpn (non-NAT only)"
+			fi
 	echo "If you want to add more clients, you simply need to run this script again!"
 fi
