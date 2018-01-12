@@ -197,9 +197,9 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 else
 	clear
 	echo 'Welcome to this quick OpenVPN "road warrior" installer'
-	echo 'The current script is modified from the original'
+	echo 'The current script is modified from the original by Nyr'
 	echo '(https://github.com/Nyr/openvpn-install)'
-	echo 'to enable tls-crypt and easy-mode (move the config to httpd directly).'
+	echo 'to enable tls-crypt and easy-mode (move the config to http server directly).'
 	echo ""
 	# OpenVPN setup and first user creation
 	echo "I need to ask you a few questions before starting the setup"
@@ -468,6 +468,7 @@ comp-lzo
 setenv opt block-outside-dns
 $KEYD
 verb 3" > /etc/openvpn/client-common.txt
+	mkdir /etc/openvpn/cfg
 	echo "$CLIENTSET" > /etc/openvpn/cfg/tlscfg
 	echo "$auto" > /etc/openvpn/cfg/auto
 	# Generates the custom client.ovpn
