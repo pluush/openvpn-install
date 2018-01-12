@@ -54,9 +54,9 @@ newclient () {
 	echo "<key>" >> ~/$1.ovpn
 	cat /etc/openvpn/easy-rsa/pki/private/$1.key >> ~/$1.ovpn
 	echo "</key>" >> ~/$1.ovpn
-	echo "<tls-auth>" >> ~/$1.ovpn
+	echo "<tls-crypt>" >> ~/$1.ovpn
 	cat /etc/openvpn/ta.key >> ~/$1.ovpn
-	echo "</tls-auth>" >> ~/$1.ovpn
+	echo "</tls-crypt>" >> ~/$1.ovpn
 }
 
 # Try to get our IP from the system and fallback to the Internet.
@@ -180,6 +180,9 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 else
 	clear
 	echo 'Welcome to this quick OpenVPN "road warrior" installer'
+	echo 'The current script is modified from the original'
+	echo '(https://github.com/Nyr/openvpn-install)'
+	echo 'to use tls-crypt instead of the default tls-auth.'
 	echo ""
 	# OpenVPN setup and first user creation
 	echo "I need to ask you a few questions before starting the setup"
@@ -254,7 +257,7 @@ else
 	cp pki/ca.crt pki/private/ca.key pki/dh.pem pki/issued/server.crt pki/private/server.key pki/crl.pem /etc/openvpn
 	# CRL is read with each client connection, when OpenVPN is dropped to nobody
 	chown nobody:$GROUPNAME /etc/openvpn/crl.pem
-	# Generate key for tls-auth
+	# Generate key for tls-crypt
 	openvpn --genkey --secret /etc/openvpn/ta.key
 	# Generate server.conf
 	echo "port $PORT
@@ -267,7 +270,7 @@ cert server.crt
 key server.key
 dh dh.pem
 auth SHA512
-tls-auth ta.key 0
+tls-crypt ta.key
 topology subnet
 server 10.8.0.0 255.255.255.0
 ifconfig-pool-persist ipp.txt" > /etc/openvpn/server.conf
@@ -409,7 +412,6 @@ auth SHA512
 cipher AES-256-CBC
 comp-lzo
 setenv opt block-outside-dns
-key-direction 1
 verb 3" > /etc/openvpn/client-common.txt
 	# Generates the custom client.ovpn
 	newclient "$CLIENT"
