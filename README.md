@@ -5,8 +5,11 @@ This script will let you setup your own VPN server in no more than a minute, eve
 
 ## About this fork
 Forked from [Nyr/openvpn-install](https://github.com/Nyr/openvpn-install)
+
 This fork uses tls-crypt instead of tls-auth, for better obfuscation on control channel.
+
 Requires appropriate support on clients.
+
 Please uninstall previous installations if there are any.
 
 ### Installation
