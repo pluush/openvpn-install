@@ -3,16 +3,12 @@ OpenVPN [road warrior](http://en.wikipedia.org/wiki/Road_warrior_%28computing%29
 
 This script will let you setup your own VPN server in no more than a minute, even if you haven't used OpenVPN before. It has been designed to be as unobtrusive and universal as possible.
 
+## About this fork
+Forked from [Nyr/openvpn-install](https://github.com/Nyr/openvpn-install)
+This fork uses tls-crypt instead of tls-auth, for better obfuscation on control channel.
+Requires appropriate support on clients.
+Please uninstall previous installations if there are any.
+
 ### Installation
-Run the script and follow the assistant:
-
-`wget https://git.io/vpn -O openvpn-install.sh && bash openvpn-install.sh`
-
-Once it ends, you can run it again to add more users, remove some of them or even completely uninstall OpenVPN.
-
-### I want to run my own VPN but don't have a server for that
-You can get a little VPS for just $2.99/month at [Bandwagon Host](https://bandwagonhost.com/aff.php?aff=575&pid=43).
-
-### Donations
-
-If you want to show your appreciation, you can donate via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=VBAYDL34Z7J6L) or [Bitcoin](https://pastebin.com/raw/M2JJpQpC). Thanks!
+To install this modified fork, please run
+`wget https://raw.githubusercontent.com/pluush/openvpn-install/tls-crypt/openvpn-install.sh -O openvpn-install.sh && bash openvpn-install.sh`
