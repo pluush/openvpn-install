@@ -103,8 +103,9 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 			newclient "$CLIENT"
 			echo ""
 			echo "Client $CLIENT added, configuration is available at" ~/"$CLIENT.ovpn"
+			bash /etc/openvpn/tls-settings.txt
 			if [[ "$auto" = "1" ]]; then
-			echo "You can directly download the configuration at $IP"/"$CLIENT.ovpn (only if not behind NAT)"
+			echo "You can also directly download the configuration at $IP"/"$CLIENT.ovpn (only if not behind NAT)"
 			fi
 			exit
 			;;
@@ -229,14 +230,14 @@ else
 	read -p "TLS protocol [1-2]: " -e -i 1 TLSPROT
 	case $TLSPROT in
 		1) 
-		SERVTLS="tls-crypt ta.key"
-		KEYD=""
-		CLIENTSET="c"
-		;;
-		2) 
 		SERVTLS="tls-auth ta.key 0"
 		KEYD="key-direction 1"
 		CLIENTSET="a"
+		;;
+		2) 
+		SERVTLS="tls-crypt ta.key"
+		KEYD=""
+		CLIENTSET="c"
 		;;
 	esac
 	echo ""
