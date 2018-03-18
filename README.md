@@ -8,7 +8,7 @@ Forked from [Nyr/openvpn-install](https://github.com/Nyr/openvpn-install)
 
 This fork asks whether you want to use tls-crypt instead of tls-auth, for better obfuscation on control channel. Requires appropriate support on clients.
 
-This forks also adds the feature to move configuration files directly to an accessible URL. This will allow the fastest access to your OpenVPN server. **Please be aware of the risks, or delete the file at /var/www/html afterwards.**
+This fork also adds the feature **(opt-in)** to move configuration files directly to an accessible URL. This will allow the fastest access to your OpenVPN server. **Please be aware of the risks, and delete the file at /var/www/html afterwards.**
 
 Please uninstall previous installations if there are any.
 
